@@ -18,18 +18,36 @@ const API_OPTIONS = {
 
 const App = () => {
   const [searchTerm, setSearchTerm] = useState("");
-
   const [errorMessage, setErrorMessage] = useState("");
+  const [movieList, setMovieList] = useState([]);
+  const [loading, setLoading] = useState(false);
 
     const fetchMovies = async () => {
+    setLoading(true);
+    setErrorMessage('');
+
     try {
         const endpoint = `${API_BASE_URL}/discover/movie?sort_by=popularity.desc`;
         const response = await fetch(endpoint, API_OPTIONS);
-        throw new Error("Error fetching movies");
+        if(!response.ok) {
+            throw new Error("Failed to fetch the movie list");
+        }
+
+        const data = await response.json();
+
+        if(data.Response === 'False') {
+            setErrorMessage(data.error || 'Failed to fetch the movie list');
+            setMovieList([]);
+            return;
+        }
+
+        setMovieList(data.results || []);
     }
     catch (error) {
         console.log(`Error fetching movies: ${error}`);
         setErrorMessage("Error fetching movies. Please try again later.");
+    } finally {
+        setLoading(false);
     }
 }
 
@@ -55,7 +73,18 @@ const App = () => {
 
         <section className="movies">
             <h2>All Movies</h2>
-            {errorMessage && <p className="text-red-500">{errorMessage}</p>}
+
+            {loading ? (
+                <p className="text-white">Loading...</p>
+            ) : errorMessage ? (
+                <p className="text-red-500">{errorMessage}</p>
+            ) : (
+                <ul>
+                    {movieList.map((movie) => (
+                        <p key={movie.id} className="text-white">{movie.title}</p>
+                    ))}
+                </ul>
+            )}
         </section>
     </div>
   </main>  
