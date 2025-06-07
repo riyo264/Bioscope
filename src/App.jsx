@@ -5,8 +5,10 @@ import './App.css'
 import Search from './Components/Search'
 
 
-const API_BASE_URL = 'https://api.themoviedb.org/3' ;
+const API_BASE_URL = 'https://api.themoviedb.org/3';
+
 const API_KEY = import.meta.env.VITE_TMDB_API_KEY;
+
 const API_OPTIONS = {
     method: 'GET',
     headers: {
@@ -20,15 +22,17 @@ const App = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [movieList, setMovieList] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
     const fetchMovies = async () => {
-    setLoading(true);
+    setIsLoading(true);
     setErrorMessage('');
 
     try {
         const endpoint = `${API_BASE_URL}/discover/movie?sort_by=popularity.desc`;
+
         const response = await fetch(endpoint, API_OPTIONS);
+
         if(!response.ok) {
             throw new Error("Failed to fetch the movie list");
         }
@@ -36,18 +40,17 @@ const App = () => {
         const data = await response.json();
 
         if(data.Response === 'False') {
-            setErrorMessage(data.error || 'Failed to fetch the movie list');
+            setErrorMessage(data.Error || 'Failed to fetch the movie list');
             setMovieList([]);
             return;
         }
 
         setMovieList(data.results || []);
-    }
-    catch (error) {
-        console.log(`Error fetching movies: ${error}`);
+    } catch (error) {
+        console.error(`Error fetching movies: ${error}`);
         setErrorMessage("Error fetching movies. Please try again later.");
     } finally {
-        setLoading(false);
+        setIsLoading(false);
     }
 }
 
@@ -74,14 +77,14 @@ const App = () => {
         <section className="movies">
             <h2>All Movies</h2>
 
-            {loading ? (
+            {isLoading ? (
                 <p className="text-white">Loading...</p>
             ) : errorMessage ? (
                 <p className="text-red-500">{errorMessage}</p>
             ) : (
                 <ul>
                     {movieList.map((movie) => (
-                        <p key={movie.id} className="text-white">{movie.title}</p>
+                        <p className="text-white">{movie.title}</p>
                     ))}
                 </ul>
             )}
